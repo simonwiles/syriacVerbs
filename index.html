@@ -6,14 +6,14 @@
   </head>
 
   <body>
+    <main></main>
 
-    <footer></footer>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <script>
       let STEMS = [];
       let VERBS = [];
       let type_selected = "geminate";
-      let form_selected = "ethpÊ¿el";
+      let form_selected = "ethpʿel";
       let tense_selected = "perfect";
 
       Papa.parse("/src/syriacVerbs.csv", {
@@ -21,6 +21,7 @@
         header: true,
         complete: function (results) {
           const data = results.data;
+          console.log(data);
           STEMS = data
             .filter(
               (row) =>
@@ -28,42 +29,38 @@
                 row[form_selected] === "TRUE",
             )
             .map((row) => row.stem);
-        },
-      });
 
-      STEMS.forEach((stem) => {
-          "https://syriacverbtutorial.org/src/${type_selected}Paradigm/${stem}.csv",
-          {
-            download: true,
-            complete: function (results) {
-              const data = results.data;
-              // Get the form names from headers (excluding the first two columns)
-              data.forEach((row) => {
-                  const formIndex = forms.indexOf(form_selected);
-        Papa.parse("/src/${type_selected}Paradigm/${stem}.csv", {
-          complete: function (results) {
-            const data = results.data;
-            const headers = data[0];
-            // Get the form names from headers (excluding the first two columns)
-            const forms = headers.slice(2);
-            data.forEach((row) => {
-              if (row[0] === tense_selected) {
-                // PGN is in the second column of each row
-                const pgn = row[1];
-                // Find the index of the requested form
-                const formIndex = forms.indexOf(form_selected);
-                if (formIndex !== -1) {
-                  // Get the conjugation for the requested form
-                  const conjugation = row[2 + formIndex];
-                  if (conjugation) {
-                    VERBS.push({ pgn: pgn, name: conjugation });
+          console.log("STEMS", STEMS);
+
+          STEMS.forEach((stem) => {
+            Papa.parse(`/src/${type_selected}Paradigm/${stem}.csv`, {
+              download: true,
+              complete: function (results) {
+                const data = results.data;
+                const headers = data[0];
+                // Get the form names from headers (excluding the first two columns)
+                const forms = headers.slice(2);
+                data.forEach((row) => {
+                  if (row[0] === tense_selected) {
+                    // PGN is in the second column of each row
+                    const pgn = row[1];
+                    // Find the index of the requested form
+                    const formIndex = forms.indexOf(form_selected);
+                    if (formIndex !== -1) {
+                      // Get the conjugation for the requested form
+                      const conjugation = row[2 + formIndex];
+                      if (conjugation) {
+                        VERBS.push({ pgn: pgn, name: conjugation });
+                      }
+                    }
                   }
-                }
-              }
+                });
+              },
+              header: false,
             });
-          },
-          header: false,
-        });
+          });
+          console.log("VERBS", VERBS);
+        },
       });
     </script>
   </body>
